@@ -3,29 +3,32 @@ import { Link } from 'react-router-dom';
 import API from '../services/api';
 import DashboardCard from '../components/DashboardCard';
 import LoadingSpinner from '../components/LoadingSpinner';
-import { FaUsers, FaBuilding, FaBook, FaChartBar, FaPlusCircle, FaSearch, FaEye } from 'react-icons/fa';
+import { FaUsers, FaBuilding, FaBook, FaChartBar, FaPlusCircle, FaSearch, FaEye, FaUserCheck } from 'react-icons/fa';
 
 const OfficerDashboard = () => {
   const [students, setStudents] = useState([]);
   const [drives, setDrives] = useState([]);
   const [resources, setResources] = useState([]);
   const [reports, setReports] = useState([]);
+  const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     const fetchOfficerData = async () => {
       try {
-        const [stuRes, drvRes, resRes, repRes] = await Promise.all([
+        const [stuRes, drvRes, resRes, repRes, appRes] = await Promise.all([
           API.get('/officer/students'),
           API.get('/drives'),
           API.get('/resources'),
-          API.get('/officer/reports')
+          API.get('/officer/reports'),
+          API.get('/officer/drive-applications')
         ]);
         setStudents(stuRes.data.students || []);
         setDrives(drvRes.data.drives || []);
         setResources(resRes.data.resources || []);
         setReports(repRes.data.reports || []);
+        setApplications(appRes.data.applications || []);
       } catch (err) {
         console.error(err);
       } finally {
@@ -76,6 +79,24 @@ const OfficerDashboard = () => {
         <div className="col-6 col-md-3">
           <DashboardCard title="Generated Reports" value={reports.length} icon={FaChartBar} color="warning" />
         </div>
+      </div>
+
+      <div className="glass-card p-4 mb-4">
+        <div className="d-flex align-items-center justify-content-between mb-3">
+          <div className="d-flex align-items-center gap-2"><FaUserCheck className="text-success" size={20} /><h4 className="fw-bold mb-0">Placement Drive Applications</h4></div>
+          <span className="badge bg-success-subtle text-success">{applications.length} Applied</span>
+        </div>
+        {applications.length === 0 ? <p className="text-muted mb-0">No students have applied to a placement drive yet.</p> : <div className="table-responsive">
+          <table className="table table-hover align-middle mb-0 text-body"><thead><tr><th>Student</th><th>Drive</th><th>Department</th><th>Readiness Score</th><th>Applied On</th><th className="text-end">Profile</th></tr></thead><tbody>
+            {applications.map((application) => <tr key={application._id}>
+              <td><div className="fw-bold">{application.student.name}</div><div className="small text-muted">{application.student.email}</div></td>
+              <td><div className="fw-semibold">{application.drive.company}</div><div className="small text-muted">{application.drive.role}</div></td>
+              <td>{application.student.department}</td><td className="fw-bold">{application.student.readinessScore} / 100</td>
+              <td className="small">{new Date(application.appliedAt).toLocaleDateString()}</td>
+              <td className="text-end"><Link to={`/officer/students/${application.student._id}`} className="btn btn-sm btn-outline-primary rounded-3"><FaEye size={12} /> Inspect</Link></td>
+            </tr>)}
+          </tbody></table>
+        </div>}
       </div>
 
       {/* Student Roster Table */}

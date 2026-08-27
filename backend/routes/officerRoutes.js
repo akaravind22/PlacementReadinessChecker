@@ -10,6 +10,7 @@ router.use(roleMiddleware('Placement Officer', 'Admin'));
 // Students Monitoring
 router.get('/students', officerController.getStudents);
 router.get('/students/:id', officerController.getStudentDetail);
+router.get('/drive-applications', officerController.getDriveApplications);
 
 // Notifications & Reports
 router.post('/notifications', officerController.sendNotification);

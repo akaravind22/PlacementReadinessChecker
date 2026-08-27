@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { FaBuilding, FaMapMarkerAlt, FaCalendarAlt, FaMoneyBillWave, FaTrashAlt, FaInfoCircle, FaTimes } from 'react-icons/fa';
+import { FaBuilding, FaMapMarkerAlt, FaCalendarAlt, FaMoneyBillWave, FaTrashAlt, FaInfoCircle, FaTimes, FaCheckCircle } from 'react-icons/fa';
 
-const PlacementDriveCard = ({ drive, onDelete, isManage = false }) => {
+const PlacementDriveCard = ({ drive, onDelete, isManage = false, onApply, applying = false }) => {
   const [showInfo, setShowInfo] = useState(false);
   return (<>
     <div className="glass-card p-4 h-100 d-flex flex-column justify-content-between">
@@ -44,7 +44,7 @@ const PlacementDriveCard = ({ drive, onDelete, isManage = false }) => {
             </button>
           ) : <div className="d-flex align-items-center gap-2">
             <button type="button" onClick={() => setShowInfo(true)} className="btn btn-sm btn-outline-brand rounded-3 d-flex align-items-center gap-1"><FaInfoCircle /> Company Info</button>
-            <a href={drive.applyLink || '#'} target="_blank" rel="noreferrer" className={`btn btn-sm btn-brand rounded-3 ${!drive.applyLink ? 'disabled' : ''}`}>Apply Now</a>
+            {drive.isApplied ? <span className="btn btn-sm btn-success rounded-3 disabled d-flex align-items-center gap-1"><FaCheckCircle /> Applied</span> : <button type="button" onClick={() => onApply?.(drive)} className="btn btn-sm btn-brand rounded-3" disabled={applying}>{applying ? 'Applying...' : 'Apply Now'}</button>}
           </div>}
         </div>
       </div>

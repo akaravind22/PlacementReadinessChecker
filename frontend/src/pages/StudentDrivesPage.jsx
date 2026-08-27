@@ -7,6 +7,7 @@ import { FaBuilding } from 'react-icons/fa';
 const StudentDrivesPage = () => {
   const [drives, setDrives] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [applyingId, setApplyingId] = useState(null);
 
   useEffect(() => {
     const fetchDrives = async () => {
@@ -24,6 +25,18 @@ const StudentDrivesPage = () => {
   }, []);
 
   if (loading) return <LoadingSpinner message="Fetching Active Placement Drives..." />;
+
+  const applyToDrive = async (drive) => {
+    setApplyingId(drive._id);
+    try {
+      await API.post(`/drives/${drive._id}/apply`);
+      setDrives((items) => items.map((item) => item._id === drive._id ? { ...item, isApplied: true } : item));
+    } catch (err) {
+      console.error('Application failed:', err);
+    } finally {
+      setApplyingId(null);
+    }
+  };
 
   return (
     <div className="container py-3">
@@ -47,7 +60,7 @@ const StudentDrivesPage = () => {
         ) : (
           drives.map((drive) => (
             <div key={drive._id} className="col-md-6 col-lg-4">
-              <PlacementDriveCard drive={drive} />
+              <PlacementDriveCard drive={drive} onApply={applyToDrive} applying={applyingId === drive._id} />
             </div>
           ))
         )}
