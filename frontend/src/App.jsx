@@ -129,6 +129,7 @@ function App() {
                 <Route path="/officer/students/:id" element={<StudentDetailPage />} />
                 <Route path="/officer/post-drive" element={<PostDrivePage />} />
                 <Route path="/officer/upload-resource" element={<UploadResourcePage />} />
+                <Route path="/officer/quizzes" element={<ManageQuizzesPage />} />
                 <Route path="/officer/reports" element={<OfficerReportsPage />} />
               </Route>
             </Route>

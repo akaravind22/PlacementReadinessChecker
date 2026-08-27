@@ -75,6 +75,9 @@ const Sidebar = () => {
             <NavLink to="/officer/upload-resource" className={({ isActive }) => `nav-link d-flex align-items-center gap-3 py-2 px-3 rounded-3 ${isActive ? 'bg-primary text-white fw-bold' : 'text-body'}`}>
               <FaFileUpload size={16} /> <span>{t('Upload Resource')}</span>
             </NavLink>
+            <NavLink to="/officer/quizzes" className={({ isActive }) => `nav-link d-flex align-items-center gap-3 py-2 px-3 rounded-3 ${isActive ? 'bg-primary text-white fw-bold' : 'text-body'}`}>
+              <FaQuestionCircle size={16} /> <span>{t('Manage Quizzes')}</span>
+            </NavLink>
             <NavLink to="/officer/reports" className={({ isActive }) => `nav-link d-flex align-items-center gap-3 py-2 px-3 rounded-3 ${isActive ? 'bg-primary text-white fw-bold' : 'text-body'}`}>
               <FaChartBar size={16} /> <span>{t('Reports & Analytics')}</span>
             </NavLink>

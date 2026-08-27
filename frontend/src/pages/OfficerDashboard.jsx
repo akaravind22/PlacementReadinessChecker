@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import API from '../services/api';
 import DashboardCard from '../components/DashboardCard';
 import LoadingSpinner from '../components/LoadingSpinner';
-import { FaUsers, FaBuilding, FaBook, FaChartBar, FaPlusCircle, FaSearch, FaEye, FaUserCheck } from 'react-icons/fa';
+import { FaUsers, FaBuilding, FaBook, FaChartBar, FaPlusCircle, FaSearch, FaEye, FaQuestionCircle, FaUserCheck } from 'react-icons/fa';
 
 const OfficerDashboard = () => {
   const [students, setStudents] = useState([]);
@@ -61,6 +61,9 @@ const OfficerDashboard = () => {
           </Link>
           <Link to="/officer/upload-resource" className="btn btn-outline-brand btn-sm d-flex align-items-center gap-1">
             <FaBook /> Upload Material
+          </Link>
+          <Link to="/officer/quizzes" className="btn btn-outline-brand btn-sm d-flex align-items-center gap-1">
+            <FaQuestionCircle /> Manage Quizzes
           </Link>
         </div>
       </div>
