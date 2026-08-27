@@ -16,5 +16,6 @@ router.get('/drive-applications', officerController.getDriveApplications);
 router.post('/notifications', officerController.sendNotification);
 router.post('/reports', officerController.generateReport);
 router.get('/reports', officerController.getReports);
+router.get('/reports/:id/details', officerController.getReportDetails);
 
 module.exports = router;

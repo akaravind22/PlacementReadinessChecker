@@ -11,6 +11,22 @@ const Notification = require('../models/Notification');
 const Report = require('../models/Report');
 const { calculateReadinessScore } = require('../utils/scoreCalculator');
 
+const buildStudentSnapshots = async () => {
+  const profiles = await StudentProfile.find().populate('userId', 'name email');
+  const studentSnapshots = await Promise.all(profiles.map(async (profile) => {
+    const scoreData = await calculateReadinessScore(profile.userId._id);
+    return {
+      name: profile.userId?.name || 'Student', email: profile.userId?.email || '',
+      department: profile.department || 'Not specified', cgpa: profile.cgpa || 0, backlogs: profile.backlogs || 0,
+      readinessScore: scoreData.totalScore, category: scoreData.category,
+      cgpaScore: scoreData.breakdown.cgpaScore || 0, skillScore: scoreData.breakdown.skillScore || 0,
+      projectScore: scoreData.breakdown.projectScore || 0, certScore: scoreData.breakdown.certScore || 0,
+      internshipScore: scoreData.breakdown.internshipScore || 0, quizScore: scoreData.breakdown.quizScore || 0
+    };
+  }));
+  return { profiles, studentSnapshots };
+};
+
 // View All Students with search/filter
 exports.getStudents = async (req, res) => {
   try {
@@ -252,16 +268,17 @@ exports.sendNotification = async (req, res) => {
 // Generate Report
 exports.generateReport = async (req, res) => {
   try {
-    const profiles = await StudentProfile.find();
-    const totalStudents = profiles.length;
-    const totalScoreSum = profiles.reduce((acc, p) => acc + (p.readinessScore || 0), 0);
+    const { profiles, studentSnapshots } = await buildStudentSnapshots();
+    const totalStudents = studentSnapshots.length;
+    const totalScoreSum = studentSnapshots.reduce((acc, student) => acc + student.readinessScore, 0);
     const avgScore = totalStudents > 0 ? Math.round(totalScoreSum / totalStudents) : 0;
-    const eligibleCount = profiles.filter(p => p.readinessScore >= 70 && p.cgpa >= 7.0 && p.backlogs === 0).length;
+    const eligibleCount = studentSnapshots.filter((student) => student.readinessScore >= 70 && student.cgpa >= 7.0 && student.backlogs === 0).length;
 
     const report = await Report.create({
       title: `Placement Readiness Batch Overview - ${new Date().toLocaleDateString()}`,
       generatedBy: req.user.id,
       generatedDate: new Date(),
+      studentSnapshots,
       metrics: {
         totalStudents,
         avgReadinessScore: avgScore,
@@ -280,6 +297,22 @@ exports.getReports = async (req, res) => {
   try {
     const reports = await Report.find().populate('generatedBy', 'name role').sort({ createdAt: -1 });
     res.json({ success: true, reports });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// Provides detail for downloads and upgrades legacy summary-only reports once.
+exports.getReportDetails = async (req, res) => {
+  try {
+    const report = await Report.findById(req.params.id).populate('generatedBy', 'name role');
+    if (!report) return res.status(404).json({ success: false, message: 'Report not found.' });
+    if (!report.studentSnapshots?.length) {
+      const { studentSnapshots } = await buildStudentSnapshots();
+      report.studentSnapshots = studentSnapshots;
+      await report.save();
+    }
+    res.json({ success: true, report });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
