@@ -1,6 +1,6 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Outlet } from 'react-router-dom';
-import { AuthProvider } from './context/AuthContext';
+import React, { useContext } from 'react';
+import { BrowserRouter as Router, Routes, Route, Outlet, Navigate } from 'react-router-dom';
+import { AuthContext, AuthProvider } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 
 // Components
@@ -8,6 +8,7 @@ import Navbar from './components/Navbar';
 import Sidebar from './components/Sidebar';
 import Footer from './components/Footer';
 import ProtectedRoute from './components/ProtectedRoute';
+import LoadingSpinner from './components/LoadingSpinner';
 
 // Public Pages
 import Landing from './pages/Landing';
@@ -71,6 +72,21 @@ const DashboardLayout = () => (
   </div>
 );
 
+// The marketing landing page is only for visitors who are not signed in.
+const HomeRoute = () => {
+  const { user, loading } = useContext(AuthContext);
+
+  if (loading) return <LoadingSpinner message="Loading your workspace..." />;
+  if (!user) return <Landing />;
+
+  const dashboard = user.role === 'Admin'
+    ? '/admin-dashboard'
+    : user.role === 'Placement Officer'
+      ? '/officer-dashboard'
+      : '/student-dashboard';
+  return <Navigate to={dashboard} replace />;
+};
+
 function App() {
   return (
     <ThemeProvider>
@@ -79,7 +95,7 @@ function App() {
           <Routes>
             {/* Public Routes */}
             <Route element={<MainLayout />}>
-              <Route path="/" element={<Landing />} />
+              <Route path="/" element={<HomeRoute />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
