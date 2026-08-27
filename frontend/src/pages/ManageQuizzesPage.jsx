@@ -3,10 +3,11 @@ import API from '../services/api';
 import QuizCard from '../components/QuizCard';
 import LoadingSpinner from '../components/LoadingSpinner';
 import ToastAlert from '../components/ToastAlert';
-import { FaQuestionCircle, FaPlus } from 'react-icons/fa';
+import { FaQuestionCircle, FaPlus, FaUserCheck } from 'react-icons/fa';
 
 const ManageQuizzesPage = () => {
   const [quizzes, setQuizzes] = useState([]);
+  const [attempts, setAttempts] = useState([]);
   const [loading, setLoading] = useState(true);
   
   // New Quiz form state
@@ -27,8 +28,12 @@ const ManageQuizzesPage = () => {
 
   const fetchQuizzes = async () => {
     try {
-      const res = await API.get('/quizzes');
-      setQuizzes(res.data.quizzes || []);
+      const [quizResponse, attemptResponse] = await Promise.all([
+        API.get('/quizzes'),
+        API.get('/officer/quiz-attempts')
+      ]);
+      setQuizzes(quizResponse.data.quizzes || []);
+      setAttempts(attemptResponse.data.attempts || []);
     } catch (err) {
       console.error(err);
     } finally {
@@ -245,6 +250,23 @@ const ManageQuizzesPage = () => {
             </form>
           </div>
         </div>
+      </div>
+
+      <div className="glass-card p-4 mb-4">
+        <div className="d-flex align-items-center justify-content-between mb-3">
+          <div className="d-flex align-items-center gap-2"><FaUserCheck className="text-success" /><h5 className="fw-bold mb-0">Quiz Attendance & Results</h5></div>
+          <span className="badge bg-success-subtle text-success">{attempts.length} Completed</span>
+        </div>
+        {attempts.length === 0 ? <p className="text-muted mb-0">No student has completed a quiz yet.</p> : <div className="table-responsive">
+          <table className="table table-hover align-middle mb-0 text-body"><thead><tr><th>Student</th><th>Quiz</th><th>Category</th><th>Score</th><th>Correct Answers</th><th>Attempted On</th></tr></thead><tbody>
+            {attempts.map((attempt) => <tr key={attempt._id}>
+              <td><div className="fw-semibold">{attempt.student.name}</div><div className="small text-muted">{attempt.student.email}</div></td>
+              <td className="fw-semibold">{attempt.quiz.title}</td><td><span className="badge bg-primary-subtle text-primary">{attempt.quiz.category}</span></td>
+              <td><span className={`badge ${attempt.score >= 70 ? 'bg-success' : attempt.score >= 50 ? 'bg-warning text-dark' : 'bg-danger'}`}>{attempt.score}%</span></td>
+              <td>{attempt.correctAnswersCount} / {attempt.totalQuestions}</td><td className="small">{new Date(attempt.attemptDate).toLocaleString()}</td>
+            </tr>)}
+          </tbody></table>
+        </div>}
       </div>
 
       {/* Quizzes List */}

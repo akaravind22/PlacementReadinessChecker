@@ -9,6 +9,7 @@ const DriveApplication = require('../models/DriveApplication');
 const Resource = require('../models/Resource');
 const Notification = require('../models/Notification');
 const Report = require('../models/Report');
+const QuizResult = require('../models/QuizResult');
 const { calculateReadinessScore } = require('../utils/scoreCalculator');
 
 const buildStudentSnapshots = async () => {
@@ -149,6 +150,29 @@ exports.getDriveApplications = async (req, res) => {
           }
         };
       })
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+exports.getQuizAttempts = async (req, res) => {
+  try {
+    const attempts = await QuizResult.find()
+      .populate('studentId', 'name email')
+      .populate('quizId', 'title category')
+      .sort({ attemptDate: -1 });
+    res.json({
+      success: true,
+      attempts: attempts.filter((attempt) => attempt.studentId && attempt.quizId).map((attempt) => ({
+        _id: attempt._id,
+        student: attempt.studentId,
+        quiz: attempt.quizId,
+        score: attempt.score,
+        correctAnswersCount: attempt.correctAnswersCount,
+        totalQuestions: attempt.totalQuestions,
+        attemptDate: attempt.attemptDate
+      }))
     });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
