@@ -75,6 +75,11 @@ exports.startQuiz = async (req, res) => {
     const quiz = await Quiz.findById(req.params.id);
     if (!quiz) return res.status(404).json({ success: false, message: 'Quiz not found.' });
 
+    const existingResult = await QuizResult.exists({ studentId: req.user.id, quizId: req.params.id });
+    if (existingResult) {
+      return res.status(409).json({ success: false, message: 'You have already completed this assessment.' });
+    }
+
     const questions = await Question.find({ quizId: req.params.id }).select('-correctAnswer');
     res.json({
       success: true,
@@ -95,6 +100,11 @@ exports.submitQuiz = async (req, res) => {
 
     const quiz = await Quiz.findById(quizId);
     if (!quiz) return res.status(404).json({ success: false, message: 'Quiz not found.' });
+
+    const existingResult = await QuizResult.exists({ studentId, quizId });
+    if (existingResult) {
+      return res.status(409).json({ success: false, message: 'You have already completed this assessment.' });
+    }
 
     const questions = await Question.find({ quizId });
     if (questions.length === 0) {

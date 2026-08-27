@@ -30,6 +30,13 @@ const QuizListPage = () => {
 
   if (loading) return <LoadingSpinner message="Loading Placement Practice Quizzes..." />;
 
+  // quizId is populated by the results endpoint, but this also supports an id-only result.
+  const resultsByQuizId = new Map(
+    results
+      .filter((result) => result.quizId)
+      .map((result) => [String(result.quizId?._id || result.quizId), result])
+  );
+
   return (
     <div className="container py-3">
       <div className="d-flex align-items-center gap-3 mb-4">
@@ -51,11 +58,14 @@ const QuizListPage = () => {
                 <p className="text-muted">No quizzes available right now. Placement Officers update quizzes regularly.</p>
               </div>
             ) : (
-              quizzes.map((quiz) => (
+              quizzes.map((quiz) => {
+                const result = resultsByQuizId.get(String(quiz._id));
+                return (
                 <div key={quiz._id} className="col-md-6">
-                  <QuizCard quiz={quiz} />
+                  <QuizCard quiz={quiz} completed={Boolean(result)} result={result} />
                 </div>
-              ))
+                );
+              })
             )}
           </div>
         </div>

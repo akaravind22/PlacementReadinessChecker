@@ -334,8 +334,10 @@ exports.getStudentReport = async (req, res) => {
 // View Readiness Score & Breakdown
 exports.getReadinessScore = async (req, res) => {
   try {
-    const suggestions = await Suggestion.find({ studentId: req.user.id });
-    res.json({ success: true, suggestions });
+    // Recalculate before returning so the dashboard always reflects the latest
+    // profile, skills, projects, certifications, internships, and quiz results.
+    const scoreData = await calculateReadinessScore(req.user.id);
+    res.json({ success: true, ...scoreData });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

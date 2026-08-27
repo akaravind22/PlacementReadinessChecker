@@ -1,8 +1,8 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { FaClipboardCheck, FaQuestionCircle, FaTrashAlt } from 'react-icons/fa';
+import { FaCheckCircle, FaClipboardCheck, FaQuestionCircle, FaTrashAlt } from 'react-icons/fa';
 
-const QuizCard = ({ quiz, onDelete, isManage = false }) => {
+const QuizCard = ({ quiz, onDelete, isManage = false, completed = false, result }) => {
   return (
     <div className="glass-card p-4 h-100 d-flex flex-column justify-content-between">
       <div>
@@ -22,7 +22,11 @@ const QuizCard = ({ quiz, onDelete, isManage = false }) => {
       </div>
 
       <div className="d-flex align-items-center justify-content-between pt-3 border-top border-secondary border-opacity-10">
-        {!isManage ? (
+        {!isManage && completed ? (
+          <div className="btn btn-success btn-sm d-flex align-items-center gap-2 rounded-3 w-100 justify-content-center disabled" aria-disabled="true">
+            <FaCheckCircle size={14} /> Completed{result ? ` · ${result.score}%` : ''}
+          </div>
+        ) : !isManage ? (
           <Link to={`/student/quiz/${quiz._id}`} className="btn btn-brand btn-sm d-flex align-items-center gap-2 rounded-3 w-100 justify-content-center">
             <FaClipboardCheck size={14} /> Start Assessment
           </Link>

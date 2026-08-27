@@ -122,9 +122,25 @@ const StudentReportPage = () => {
         </div>
       </div>
 
-      <div className="row g-4">
+      <div className="glass-card p-4 mb-4">
+        <div className="d-flex align-items-center gap-2 mb-2">
+          <FaClipboardList className="text-primary" />
+          <h5 className="fw-bold mb-0">How Your Readiness Score Is Calculated</h5>
+        </div>
+        <p className="text-muted small mb-3">The system calculates your score automatically from your profile and quiz performance. Maximum total: 100 points.</p>
+        <div className="row g-3 readiness-formula-grid">
+          <div className="col-md-6 col-lg-4"><div className="readiness-formula"><strong>CGPA & Backlogs · 20 points</strong><span>(CGPA ÷ 10 × 20) − 2 points for each backlog</span></div></div>
+          <div className="col-md-6 col-lg-4"><div className="readiness-formula"><strong>Technical Skills · 20 points</strong><span>Beginner: 2, Intermediate: 3, Advanced: 4, Expert: 5 points per skill</span></div></div>
+          <div className="col-md-6 col-lg-4"><div className="readiness-formula"><strong>Projects · 20 points</strong><span>7 points per project + 1 for GitHub link + 1 for live demo</span></div></div>
+          <div className="col-md-6 col-lg-4"><div className="readiness-formula"><strong>Certifications · 15 points</strong><span>5 points per certification</span></div></div>
+          <div className="col-md-6 col-lg-4"><div className="readiness-formula"><strong>Internships · 10 points</strong><span>5 points per internship</span></div></div>
+          <div className="col-md-6 col-lg-4"><div className="readiness-formula"><strong>Quiz Results · 15 points</strong><span>Average quiz percentage ÷ 100 × 15</span></div></div>
+        </div>
+      </div>
+
+      <div className="row g-4 report-section-row">
         <div className="col-lg-6">
-          <div className="glass-card p-4">
+          <div className="glass-card p-4 h-100">
             <div className="d-flex align-items-center gap-2 mb-3">
               <FaStar className="text-warning" />
               <h5 className="fw-bold mb-0">Top Skills</h5>
@@ -142,7 +158,7 @@ const StudentReportPage = () => {
         </div>
 
         <div className="col-lg-6">
-          <div className="glass-card p-4">
+          <div className="glass-card p-4 h-100">
             <div className="d-flex align-items-center gap-2 mb-3">
               <FaClipboardList className="text-primary" />
               <h5 className="fw-bold mb-0">Preparation Summary</h5>
@@ -169,9 +185,9 @@ const StudentReportPage = () => {
         </div>
       </div>
 
-      <div className="row g-4 mt-4">
+      <div className="row g-4 mt-4 report-section-row">
         <div className="col-lg-6">
-          <div className="glass-card p-4">
+          <div className="glass-card p-4 h-100">
             <h5 className="fw-bold mb-3">Recent Projects</h5>
             {projects.length === 0 ? (
               <p className="text-muted small">Add projects to demonstrate hands-on experience.</p>
@@ -187,7 +203,7 @@ const StudentReportPage = () => {
         </div>
 
         <div className="col-lg-6">
-          <div className="glass-card p-4">
+          <div className="glass-card p-4 h-100">
             <h5 className="fw-bold mb-3">Recent Quiz Results</h5>
             {quizResults.length === 0 ? (
               <p className="text-muted small">Complete quizzes to show your readiness progress.</p>
