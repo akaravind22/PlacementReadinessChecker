@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import API from '../services/api';
+import { jsPDF } from 'jspdf';
 import LoadingSpinner from '../components/LoadingSpinner';
-import { FaClipboardList, FaCheckCircle, FaTimesCircle, FaGraduationCap, FaProjectDiagram, FaCertificate, FaBriefcase, FaStar } from 'react-icons/fa';
+import { FaClipboardList, FaCheckCircle, FaDownload, FaTimesCircle, FaGraduationCap, FaProjectDiagram, FaCertificate, FaBriefcase, FaStar } from 'react-icons/fa';
 
 const StudentReportPage = () => {
   const [report, setReport] = useState(null);
@@ -39,6 +40,60 @@ const StudentReportPage = () => {
 
   const { user, profile, metrics, scoreData, skills, projects, certifications, internships, quizResults } = report;
 
+  const downloadReport = () => {
+    const breakdown = scoreData.breakdown || {};
+    const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const margin = 15;
+    let y = 18;
+    const addSection = (title) => {
+      if (y > 265) { doc.addPage(); y = 18; }
+      doc.setFillColor(37, 99, 235); doc.roundedRect(margin, y, pageWidth - (margin * 2), 8, 2, 2, 'F');
+      doc.setTextColor(255, 255, 255); doc.setFontSize(11); doc.setFont('helvetica', 'bold'); doc.text(title, margin + 4, y + 5.5);
+      doc.setTextColor(30, 41, 59); y += 14;
+    };
+    const addRows = (rows) => {
+      rows.forEach(([label, value]) => {
+        if (y > 278) { doc.addPage(); y = 18; }
+        doc.setFont('helvetica', 'bold'); doc.setFontSize(9); doc.text(`${label}:`, margin, y);
+        doc.setFont('helvetica', 'normal');
+        const text = doc.splitTextToSize(String(value || 'Not available'), pageWidth - 72);
+        doc.text(text, margin + 52, y);
+        y += Math.max(6, text.length * 4.5);
+      });
+      y += 3;
+    };
+    const addList = (title, items, formatter) => {
+      addSection(title);
+      if (!items.length) { doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.text('No records available.', margin, y); y += 8; return; }
+      items.forEach((item, index) => {
+        if (y > 278) { doc.addPage(); y = 18; }
+        doc.setFont('helvetica', 'bold'); doc.setFontSize(9); doc.text(`${index + 1}.`, margin, y);
+        doc.setFont('helvetica', 'normal');
+        const text = doc.splitTextToSize(formatter(item), pageWidth - 25);
+        doc.text(text, margin + 7, y); y += Math.max(6, text.length * 4.5);
+      });
+      y += 3;
+    };
+
+    doc.setFillColor(15, 23, 42); doc.rect(0, 0, pageWidth, 34, 'F');
+    doc.setTextColor(255, 255, 255); doc.setFont('helvetica', 'bold'); doc.setFontSize(18); doc.text('Placement Readiness Report', margin, 17);
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.text(`Generated on ${new Date(metrics.reportDate).toLocaleString()}`, margin, 25);
+    doc.setTextColor(30, 41, 59); y = 43;
+    addSection('Student Profile');
+    addRows([['Name', user?.name], ['Email', user?.email], ['College', profile?.college], ['Department', profile?.department], ['CGPA', `${profile?.cgpa ?? 0} / 10`], ['Active Backlogs', profile?.backlogs ?? 0], ['Resume', profile?.resume ? 'Uploaded' : 'Missing']]);
+    addSection('Readiness Score Summary');
+    addRows([['Overall Score', `${scoreData.totalScore} / 100`], ['Performance Category', scoreData.category], ['CGPA Score', `${breakdown.cgpaScore || 0} / 20`], ['Skills Score', `${breakdown.skillScore || 0} / 20`], ['Projects Score', `${breakdown.projectScore || 0} / 20`], ['Certifications Score', `${breakdown.certScore || 0} / 15`], ['Internships Score', `${breakdown.internshipScore || 0} / 10`], ['Quiz Score', `${breakdown.quizScore || 0} / 15`]]);
+    addList('Technical Skills', skills, (skill) => `${skill.skillName} - ${skill.level}`);
+    addList('Projects', projects, (project) => `${project.title} - ${project.technology || 'Technology not specified'}`);
+    addList('Certifications', certifications, (certification) => `${certification.courseName} - ${certification.provider}`);
+    addList('Internships', internships, (internship) => `${internship.company} - ${internship.role}`);
+    addList('Quiz Results', quizResults, (quiz) => `${quiz.quizTitle || 'Practice Quiz'} - ${quiz.score}% (${quiz.correctAnswersCount || 0}/${quiz.totalQuestions || 0} correct)`);
+    const pages = doc.getNumberOfPages();
+    for (let page = 1; page <= pages; page += 1) { doc.setPage(page); doc.setFontSize(8); doc.setTextColor(100, 116, 139); doc.text(`PlacementChecker - Page ${page} of ${pages}`, margin, 290); }
+    doc.save(`${(user?.name || 'student').replace(/[^a-z0-9]+/gi, '-').toLowerCase()}-placement-report.pdf`);
+  };
+
   return (
     <div className="container py-4">
       <div className="d-flex flex-column flex-md-row align-items-start justify-content-between gap-3 mb-4">
@@ -47,6 +102,8 @@ const StudentReportPage = () => {
           <p className="text-muted mb-0">A personalized progress report for your placement readiness and employability profile.</p>
         </div>
         <div className="text-md-end">
+          <button type="button" onClick={downloadReport} className="btn btn-outline-brand btn-sm rounded-3 mb-2 d-inline-flex align-items-center gap-1"><FaDownload /> Download PDF Report</button>
+          <br />
           <div className="badge bg-success rounded-pill py-2 px-3 mb-2">{metrics.eligibilityStatus}</div>
           <div className="text-muted small">Report generated on {new Date(metrics.reportDate).toLocaleDateString()}</div>
         </div>
