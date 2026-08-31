@@ -11,24 +11,27 @@ const OfficerDashboard = () => {
   const [resources, setResources] = useState([]);
   const [reports, setReports] = useState([]);
   const [applications, setApplications] = useState([]);
+  const [driveViews, setDriveViews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     const fetchOfficerData = async () => {
       try {
-        const [stuRes, drvRes, resRes, repRes, appRes] = await Promise.all([
+        const [stuRes, drvRes, resRes, repRes, appRes, viewRes] = await Promise.all([
           API.get('/officer/students'),
           API.get('/drives'),
           API.get('/resources'),
           API.get('/officer/reports'),
-          API.get('/officer/drive-applications')
+          API.get('/officer/drive-applications'),
+          API.get('/officer/drive-views')
         ]);
         setStudents(stuRes.data.students || []);
         setDrives(drvRes.data.drives || []);
         setResources(resRes.data.resources || []);
         setReports(repRes.data.reports || []);
         setApplications(appRes.data.applications || []);
+        setDriveViews(viewRes.data.views || []);
       } catch (err) {
         console.error(err);
       } finally {
@@ -98,6 +101,18 @@ const OfficerDashboard = () => {
               <td className="small">{new Date(application.appliedAt).toLocaleDateString()}</td>
               <td className="text-end"><Link to={`/officer/students/${application.student._id}`} className="btn btn-sm btn-outline-primary rounded-3"><FaEye size={12} /> Inspect</Link></td>
             </tr>)}
+          </tbody></table>
+        </div>}
+      </div>
+
+      <div className="glass-card p-4 mb-4">
+        <div className="d-flex align-items-center justify-content-between mb-3">
+          <div className="d-flex align-items-center gap-2"><FaEye className="text-primary" size={20} /><h4 className="fw-bold mb-0">Student Drive Views</h4></div>
+          <span className="badge bg-primary-subtle text-primary">{driveViews.length} Viewed</span>
+        </div>
+        {driveViews.length === 0 ? <p className="text-muted mb-0">No student has opened a drive’s company information yet.</p> : <div className="table-responsive">
+          <table className="table table-hover align-middle mb-0 text-body"><thead><tr><th>Student</th><th>Drive</th><th>Department</th><th>Readiness Score</th><th>Views</th><th>Last Opened</th></tr></thead><tbody>
+            {driveViews.map((view) => <tr key={view._id}><td><div className="fw-bold">{view.student.name}</div><div className="small text-muted">{view.student.email}</div></td><td><div className="fw-semibold">{view.drive.company}</div><div className="small text-muted">{view.drive.role}</div></td><td>{view.student.department}</td><td className="fw-bold">{view.student.readinessScore} / 100</td><td>{view.viewCount}</td><td className="small">{new Date(view.lastViewedAt).toLocaleString()}</td></tr>)}
           </tbody></table>
         </div>}
       </div>

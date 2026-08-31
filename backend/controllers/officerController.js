@@ -6,6 +6,7 @@ const Certification = require('../models/Certification');
 const Internship = require('../models/Internship');
 const PlacementDrive = require('../models/PlacementDrive');
 const DriveApplication = require('../models/DriveApplication');
+const DriveView = require('../models/DriveView');
 const Resource = require('../models/Resource');
 const Notification = require('../models/Notification');
 const Report = require('../models/Report');
@@ -122,6 +123,23 @@ exports.applyToDrive = async (req, res) => {
   }
 };
 
+// A view is recorded when a student opens the Company Info panel for a drive.
+exports.recordDriveView = async (req, res) => {
+  try {
+    const drive = await PlacementDrive.findById(req.params.id);
+    if (!drive) return res.status(404).json({ success: false, message: 'Placement drive not found.' });
+    const now = new Date();
+    await DriveView.findOneAndUpdate(
+      { studentId: req.user.id, driveId: drive._id },
+      { $set: { lastViewedAt: now }, $setOnInsert: { viewedAt: now }, $inc: { viewCount: 1 } },
+      { upsert: true, new: true, setDefaultsOnInsert: true }
+    );
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 exports.getDriveApplications = async (req, res) => {
   try {
     const applications = await DriveApplication.find()
@@ -148,6 +166,30 @@ exports.getDriveApplications = async (req, res) => {
             department: profile?.department || 'Not specified',
             readinessScore: profile?.readinessScore || 0
           }
+        };
+      })
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+exports.getDriveViews = async (req, res) => {
+  try {
+    const views = await DriveView.find()
+      .populate('driveId', 'company role')
+      .populate('studentId', 'name email')
+      .sort({ lastViewedAt: -1 });
+    const studentIds = views.map((view) => view.studentId?._id).filter(Boolean);
+    const profiles = await StudentProfile.find({ userId: { $in: studentIds } }).select('userId department readinessScore');
+    const profilesByStudentId = new Map(profiles.map((profile) => [profile.userId.toString(), profile]));
+    res.json({
+      success: true,
+      views: views.filter((view) => view.driveId && view.studentId).map((view) => {
+        const profile = profilesByStudentId.get(view.studentId._id.toString());
+        return {
+          _id: view._id, drive: view.driveId, viewedAt: view.viewedAt, lastViewedAt: view.lastViewedAt, viewCount: view.viewCount,
+          student: { _id: view.studentId._id, name: view.studentId.name, email: view.studentId.email, department: profile?.department || 'Not specified', readinessScore: profile?.readinessScore || 0 }
         };
       })
     });

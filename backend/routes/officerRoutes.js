@@ -11,6 +11,7 @@ router.use(roleMiddleware('Placement Officer', 'Admin'));
 router.get('/students', officerController.getStudents);
 router.get('/students/:id', officerController.getStudentDetail);
 router.get('/drive-applications', officerController.getDriveApplications);
+router.get('/drive-views', officerController.getDriveViews);
 router.get('/quiz-attempts', officerController.getQuizAttempts);
 
 // Notifications & Reports
