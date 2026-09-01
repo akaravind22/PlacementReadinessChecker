@@ -5,7 +5,6 @@ const Project = require('../models/Project');
 const Certification = require('../models/Certification');
 const Internship = require('../models/Internship');
 const PlacementDrive = require('../models/PlacementDrive');
-const DriveApplication = require('../models/DriveApplication');
 const DriveView = require('../models/DriveView');
 const Resource = require('../models/Resource');
 const Notification = require('../models/Notification');
@@ -90,34 +89,7 @@ exports.getStudentDetail = async (req, res) => {
 exports.getDrives = async (req, res) => {
   try {
     const drives = await PlacementDrive.find().sort({ deadline: 1 });
-    if (req.user.role !== 'Student') return res.json({ success: true, drives });
-
-    const applications = await DriveApplication.find({ studentId: req.user.id }).select('driveId appliedAt');
-    const applicationsByDriveId = new Map(applications.map((application) => [application.driveId.toString(), application.appliedAt]));
-    res.json({
-      success: true,
-      drives: drives.map((drive) => ({
-        ...drive.toObject(),
-        isApplied: applicationsByDriveId.has(drive._id.toString()),
-        appliedAt: applicationsByDriveId.get(drive._id.toString()) || null
-      }))
-    });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
-  }
-};
-
-exports.applyToDrive = async (req, res) => {
-  try {
-    const drive = await PlacementDrive.findById(req.params.id);
-    if (!drive) return res.status(404).json({ success: false, message: 'Placement drive not found.' });
-
-    const application = await DriveApplication.findOneAndUpdate(
-      { studentId: req.user.id, driveId: drive._id },
-      { $setOnInsert: { appliedAt: new Date() } },
-      { new: true, upsert: true, setDefaultsOnInsert: true }
-    );
-    res.json({ success: true, message: 'Application recorded.', application });
+    res.json({ success: true, drives });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -135,40 +107,6 @@ exports.recordDriveView = async (req, res) => {
       { upsert: true, new: true, setDefaultsOnInsert: true }
     );
     res.json({ success: true });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
-  }
-};
-
-exports.getDriveApplications = async (req, res) => {
-  try {
-    const applications = await DriveApplication.find()
-      .populate('driveId', 'company role package deadline')
-      .populate('studentId', 'name email')
-      .sort({ appliedAt: -1 });
-
-    const studentIds = applications.map((application) => application.studentId?._id).filter(Boolean);
-    const profiles = await StudentProfile.find({ userId: { $in: studentIds } }).select('userId department readinessScore');
-    const profilesByStudentId = new Map(profiles.map((profile) => [profile.userId.toString(), profile]));
-
-    res.json({
-      success: true,
-      applications: applications.filter((application) => application.driveId && application.studentId).map((application) => {
-        const profile = profilesByStudentId.get(application.studentId._id.toString());
-        return {
-          _id: application._id,
-          appliedAt: application.appliedAt,
-          drive: application.driveId,
-          student: {
-            _id: application.studentId._id,
-            name: application.studentId.name,
-            email: application.studentId.email,
-            department: profile?.department || 'Not specified',
-            readinessScore: profile?.readinessScore || 0
-          }
-        };
-      })
-    });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

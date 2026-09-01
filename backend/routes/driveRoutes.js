@@ -9,7 +9,6 @@ router.use(authMiddleware);
 // Get drives (all authenticated users)
 router.get('/', officerController.getDrives);
 router.post('/:id/view', roleMiddleware('Student'), officerController.recordDriveView);
-router.post('/:id/apply', roleMiddleware('Student'), officerController.applyToDrive);
 
 // Manage drives (Placement Officer & Admin)
 router.post('/', roleMiddleware('Placement Officer', 'Admin'), officerController.createDrive);

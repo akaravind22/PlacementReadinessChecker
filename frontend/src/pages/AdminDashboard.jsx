@@ -5,25 +5,22 @@ import DashboardCard from '../components/DashboardCard';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { 
   FaShieldAlt, FaUsers, FaUserGraduate, FaUserTie, 
-  FaQuestionCircle, FaBuilding, FaBook, FaChartPie, FaEye, FaUserCheck 
+  FaQuestionCircle, FaBuilding, FaBook, FaChartPie, FaEye 
 } from 'react-icons/fa';
 
 const AdminDashboard = () => {
   const [stats, setStats] = useState(null);
-  const [applications, setApplications] = useState([]);
   const [driveViews, setDriveViews] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchAdminStats = async () => {
       try {
-        const [statsResponse, applicationsResponse, viewsResponse] = await Promise.all([
+        const [statsResponse, viewsResponse] = await Promise.all([
           API.get('/admin/dashboard-stats'),
-          API.get('/officer/drive-applications'),
           API.get('/officer/drive-views')
         ]);
         setStats(statsResponse.data.stats);
-        setApplications(applicationsResponse.data.applications || []);
         setDriveViews(viewsResponse.data.views || []);
       } catch (err) {
         console.error(err);
@@ -81,16 +78,11 @@ const AdminDashboard = () => {
       <div className="row g-4 mb-4">
         <div className="col-12">
           <div className="glass-card p-4">
-            <div className="d-flex align-items-center justify-content-between mb-3"><div className="d-flex align-items-center gap-2"><FaUserCheck className="text-success" /><h4 className="fw-bold mb-0">Student Drive Activity</h4></div><div className="d-flex gap-2"><span className="badge bg-success-subtle text-success">{applications.length} Applied</span><span className="badge bg-primary-subtle text-primary">{driveViews.length} Viewed</span></div></div>
+            <div className="d-flex align-items-center justify-content-between mb-3"><div className="d-flex align-items-center gap-2"><FaEye className="text-primary" /><h4 className="fw-bold mb-0">Student Drive Views</h4></div><span className="badge bg-primary-subtle text-primary">{driveViews.length} Viewed</span></div>
             {driveViews.length === 0 ? <p className="text-muted mb-0">No student has opened a drive’s company information yet.</p> : <div className="table-responsive"><table className="table table-hover align-middle mb-0 text-body"><thead><tr><th>Student</th><th>Drive</th><th>Department</th><th>Views</th><th>Last Opened</th></tr></thead><tbody>
               {driveViews.map((view) => <tr key={view._id}><td><div className="fw-semibold">{view.student.name}</div><div className="small text-muted">{view.student.email}</div></td><td><div className="fw-semibold">{view.drive.company}</div><div className="small text-muted">{view.drive.role}</div></td><td>{view.student.department}</td><td>{view.viewCount}</td><td className="small">{new Date(view.lastViewedAt).toLocaleString()}</td></tr>)}
             </tbody></table></div>}
 
-            <hr className="my-4 border-secondary border-opacity-25" />
-            <div className="d-flex align-items-center gap-2 mb-3"><FaUserCheck className="text-success" /><h5 className="fw-bold mb-0">Confirmed Drive Applications</h5></div>
-            {applications.length === 0 ? <p className="text-muted mb-0">No student has confirmed a drive application yet.</p> : <div className="table-responsive"><table className="table table-hover align-middle mb-0 text-body"><thead><tr><th>Student</th><th>Company / Role</th><th>Department</th><th>Readiness Score</th><th>Applied On</th></tr></thead><tbody>
-              {applications.map((application) => <tr key={application._id}><td><div className="fw-semibold">{application.student.name}</div><div className="small text-muted">{application.student.email}</div></td><td><div className="fw-semibold">{application.drive.company}</div><div className="small text-muted">{application.drive.role}</div></td><td>{application.student.department}</td><td className="fw-bold">{application.student.readinessScore} / 100</td><td className="small">{new Date(application.appliedAt).toLocaleString()}</td></tr>)}
-            </tbody></table></div>}
           </div>
         </div>
       </div>
