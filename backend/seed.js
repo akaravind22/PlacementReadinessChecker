@@ -280,12 +280,18 @@ const seedDB = async () => {
     // 8. Create Notifications
     await Notification.create({
       studentId: student1._id,
+      senderId: officer._id,
+      senderName: officer.name,
+      senderRole: officer.role,
       message: 'New Placement Drive posted: Google India (22 LPA). Deadline: Aug 30, 2026.',
       isRead: false
     });
 
     await Notification.create({
       studentId: student2._id,
+      senderId: officer._id,
+      senderName: officer.name,
+      senderRole: officer.role,
       message: 'Placement Officer Dr. Rajesh Sharma recommends adding at least 2 full-stack projects to your profile.',
       isRead: false
     });

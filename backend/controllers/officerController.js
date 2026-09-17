@@ -249,11 +249,17 @@ exports.sendNotification = async (req, res) => {
   try {
     const { studentId, message, broadcast } = req.body;
     if (!message) return res.status(400).json({ success: false, message: 'Message is required.' });
+    const sender = {
+      senderId: req.user.id,
+      senderName: req.user.name || 'Placement Officer',
+      senderRole: req.user.role || 'Placement Officer'
+    };
 
     if (broadcast) {
       const students = await User.find({ role: 'Student' });
       const notifications = students.map(s => ({
         studentId: s._id,
+        ...sender,
         message,
         isRead: false
       }));
@@ -261,7 +267,7 @@ exports.sendNotification = async (req, res) => {
       return res.json({ success: true, message: `Notification broadcasted to ${students.length} students.` });
     } else {
       if (!studentId) return res.status(400).json({ success: false, message: 'studentId required for single notification.' });
-      await Notification.create({ studentId, message });
+      await Notification.create({ studentId, ...sender, message });
       return res.json({ success: true, message: 'Notification sent to student.' });
     }
   } catch (error) {

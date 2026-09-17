@@ -356,8 +356,20 @@ exports.getSuggestions = async (req, res) => {
 // View Notifications
 exports.getNotifications = async (req, res) => {
   try {
-    const notifications = await Notification.find({ studentId: req.user.id }).sort({ createdAt: -1 });
-    res.json({ success: true, notifications });
+    const notifications = await Notification.find({ studentId: req.user.id })
+      .populate('senderId', 'name role')
+      .sort({ createdAt: -1 });
+    const notificationsWithSender = notifications.map((notification) => {
+      const data = notification.toObject();
+      return {
+        ...data,
+        sender: {
+          name: data.senderId?.name || data.senderName || 'Placement Cell',
+          role: data.senderId?.role || data.senderRole || ''
+        }
+      };
+    });
+    res.json({ success: true, notifications: notificationsWithSender });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
