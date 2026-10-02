@@ -18,5 +18,6 @@ router.put('/users/:id/role', adminController.updateUserRole);
 
 // Reports
 router.get('/reports', officerController.getReports);
+router.get('/reports/:id/details', officerController.getReportDetails);
 
 module.exports = router;
